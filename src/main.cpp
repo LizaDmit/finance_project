@@ -7,7 +7,12 @@
 #include <limits>
 using namespace std;
 
-void print_the_report(int quantity, double mean, double var, string best_day, double max_return, string worst_day, double min_return) {
+void print_the_report(string file_path, int quantity, double mean, double var, string best_day, 
+    double max_return, string worst_day, double min_return, double max_drawdown,
+    string trough_date, double max_price, string peak_date) {
+
+    cout << "\nData source: " << file_path << "\n";
+
     cout << "\n----- Analysis Summary -----\n\n";
     cout << quantity << " prices read; ";
     cout << quantity-1 << " returns computed.\n\n";
@@ -19,7 +24,10 @@ void print_the_report(int quantity, double mean, double var, string best_day, do
     cout << "Annual volatility is " << var*252*100 << "%\n\n";
 
     cout << "The best day was " << best_day << " with the return of " << max_return*100 << "%\n";
-    cout << "The worst day was " << worst_day << " with the return of " << min_return*100 << "%\n";
+    cout << "The worst day was " << worst_day << " with the return of " << min_return*100 << "%\n\n";
+
+    cout << "The max drawdown was " << max_drawdown*100 << "% on the day " << trough_date << "\n";
+    cout << "The peak price was " << max_price << " on the day " << peak_date << "\n\n";
 }
 
 double find_mean(vector<double> returns) {
@@ -43,21 +51,29 @@ double find_var(vector<double> returns, int mean) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    string file_path = "data/prices.csv";  
+
+    if (argc > 1) {
+        file_path = argv[1];
+    }
 
     vector<double> prices;
     vector<string> dates;
 
-    ifstream file("data/prices.csv"); // Opens the file with the financial data
+    ifstream file(file_path); // Opens the file with the financial data
 
     if (!file.is_open()) { 
-        cout << "Error: could not open data/prices.csv\n"; // File failed to open, outputs the error
+        cout << "Error: could not open" << file_path << "\n"; // File failed to open, outputs the error
         return 1;
     }
 
 
     string line;
     int quantity = 0;
+    double max_price = 0, max_drawdown = 0;
+    string peak_date, trough_date;
 
     getline(file, line); // Skip the header
 
@@ -75,8 +91,21 @@ int main() {
         date = line.substr(0,i);
         price = stod(line.substr(i+1));
 
+        if (peak_date == "") {
+            peak_date = trough_date = date;
+        }
+
         dates.push_back(date); // Fill in the date vector
         prices.push_back(price); // Fill in the price vector
+
+        if (price/max_price - 1 < max_drawdown) {
+            max_drawdown =  price/max_price - 1;
+            trough_date = date;
+        }
+        if (price > max_price) {
+            max_price =  price;
+            peak_date = date;
+        }
         quantity++;
     }
 
@@ -109,8 +138,9 @@ int main() {
 
     double var = find_var(returns, mean);
 
-    cout << fixed << setprecision(3);
-    print_the_report(quantity, mean, var, best_day, max_return, worst_day, min_return);
+    cout << fixed << setprecision(2);
+    print_the_report(file_path, quantity, mean, var, best_day, max_return, worst_day, min_return, max_drawdown, 
+    trough_date, max_price, peak_date);
     
 
     return 0;
