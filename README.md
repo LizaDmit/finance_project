@@ -2,7 +2,6 @@
 
 A small C++ CLI finance tool.
 
-Goal (v1): load a stock price CSV, compute daily returns and volatility, and print a report.
 
 ## Build
 ```bash
