@@ -44,10 +44,17 @@ int main(int argc, char* argv[]) {
     double mean = find_mean(returns);
     double vol = find_vol(returns, mean);
 
+    vector<double> vol_20d;
+    double max_20d_vol = -numeric_limits<double>::infinity();
+    string max_20d_vol_date = "";
+
+    find_vol_20d(vol_20d, returns);
+    report_vol_20d(vol_20d, dates, max_20d_vol, max_20d_vol_date);
+
     cout << fixed << setprecision(2);
     print_the_report(file_path, quantity, mean, vol, best_day, max_return, worst_day, min_return, max_drawdown, 
-    trough_date, max_price, peak_date);
+    trough_date, max_price, peak_date, max_20d_vol, max_20d_vol_date);
     
 
     return 0;
-}
+}     
